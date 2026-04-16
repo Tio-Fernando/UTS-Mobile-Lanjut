@@ -19,7 +19,9 @@ import android.app.Activity
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.statusBarsPadding
@@ -39,10 +41,14 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -59,7 +65,8 @@ import com.example.unscramble.R
 import com.example.unscramble.ui.theme.UnscrambleTheme
 
 @Composable
-fun GameScreen(gameViewModel: GameViewModel = viewModel()) {
+fun GameScreen(gameViewModel: GameViewModel= viewModel()) {
+    var showTambahKata by remember { mutableStateOf(false) }
     val gameUiState by gameViewModel.uiState.collectAsState()
     val mediumPadding = dimensionResource(R.dimen.padding_medium)
 
@@ -116,6 +123,17 @@ fun GameScreen(gameViewModel: GameViewModel = viewModel()) {
                     fontSize = 16.sp
                 )
             }
+
+            Button(
+                modifier = Modifier.fillMaxWidth(),
+                onClick = { showTambahKata = !showTambahKata }
+            ) {
+                Text("Tambah Kata")
+            }
+        }
+
+        if (showTambahKata) {
+            TambahKataUI(gameViewModel)
         }
 
         GameStatus(score = gameUiState.score, modifier = Modifier.padding(20.dp))
@@ -255,5 +273,45 @@ private fun FinalScoreDialog(
 fun GameScreenPreview() {
     UnscrambleTheme {
         GameScreen()
+    }
+}
+
+@Composable
+fun TambahKataUI(viewModel: GameViewModel) {
+
+    var text by remember { mutableStateOf("") }
+
+    Column(modifier = Modifier.padding(16.dp)) {
+
+        Text("Tambah Kata Baru")
+
+        TextField(
+            value = text,
+            onValueChange = { text = it },
+            label = { Text("Masukkan kata") },
+            singleLine = true,
+            keyboardOptions = KeyboardOptions(
+                imeAction = ImeAction.Done
+            ),
+            keyboardActions = KeyboardActions(
+                onDone = {
+                    if (text.isNotEmpty()) {
+                        viewModel.addWord(text)
+                        text = ""
+                    }
+                }
+            )
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Button(onClick = {
+            if (text.isNotEmpty()) {
+                viewModel.addWord(text)
+                text = ""
+            }
+        }) {
+            Text("Simpan")
+        }
     }
 }
